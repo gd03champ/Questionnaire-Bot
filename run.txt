@@ -1,0 +1,18 @@
+run rasa action server and main server and then this main server
+and finally run react app(front end) 
+
+
+
+
+--------------------------------------------------------------------------
+
+Intiate Rasa project and replace repo files
+
+Install action requirements
+
+Initiate react project and replace wirh `react src` directory files
+
+Download s2v_old zip and extrat to the repository (found in quesgen repo)
+
+
+

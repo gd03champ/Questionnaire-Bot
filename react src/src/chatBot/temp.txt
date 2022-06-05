@@ -1,0 +1,139 @@
+import axios from "axios";
+
+import { AiFillMessage } from "react-icons/ai";
+import { IoClose } from "react-icons/io5";
+import { RiFolderUploadLine } from "react-icons/ri";
+import { IoMdSend } from "react-icons/io";
+import { motion, AnimatePresence } from "framer-motion";
+import { useEffect, useState } from "react";
+import SyncLoader from "react-spinners/SyncLoader";
+import "./ChatBot.style.css";
+
+const ChatBot = () => {
+  const [showBot, setShowBot] = useState(false);
+  const [message, setMessage] = useState("");
+  const [botTyping, setBotTyping] = useState(false);
+  const [chats, setChats] = useState([]);
+  const [file, setFile] = useState(null);
+
+  const toggleBot = () => {
+    setShowBot(!showBot);
+  };
+
+  const handleUpload = (e) => {
+    setFile(e.target.files[0]);
+  };
+
+  const handleSend = () => {
+    const inputField = document.querySelector("#inputField");
+    inputField.focus();
+    if (!message) return;
+    setBotTyping(true);
+    const tempObj = { sender: "user", text: message };
+    setChats((chat) => [...chat, tempObj]);
+    setMessage("");
+
+    axios
+      .post("http://localhost:5005/webhooks/rest/webhook", { message: message })
+      .then((res) => {
+        res.data.map((obj) => setChats((chat) => [...chat, obj]));
+        setBotTyping(false);
+      })
+      .catch((err) => console.error(err));
+  };
+
+  useEffect(() => {
+    const chatWindow = document.querySelector(".chat-window");
+    chatWindow && (chatWindow.scrollTop = chatWindow.scrollHeight);
+    console.log(chats);
+  }, [chats, toggleBot]);
+
+  return (
+    <div className="chatBot">
+      {/* Chat Window Starts....  */}
+      {/* AnimatePresence - For animating the chat container on mount and unmount */}
+      <AnimatePresence>
+        {showBot && (
+          <motion.div
+            initial={{
+              y: "100px",
+              opacity: 0,
+            }}
+            animate={{
+              y: 0,
+              opacity: 1,
+            }}
+            exit={{
+              y: "100px",
+              opacity: 0,
+            }}
+            transition={{
+              duration: 0.3,
+              ease: "circOut",
+            }}
+            className="chatBot-container"
+          >
+            <div className="chatBot-header">
+              <div className="loader">
+                <SyncLoader margin='5px' color="white" size="10px" loading={botTyping} />
+              </div>
+            </div>
+            <div className="chat-window">
+              {chats.map((chat, key) => {
+                if (chat.sender === "user") {
+                  return (
+                    <div key={key} className="chat-row-user">
+                      <div className="user-chat">{chat.text}</div>
+                    </div>
+                  );
+                } else {
+                  return (
+                    <div key={key} className="chat-row-bot">
+                      {chat.text ? (
+                        <div className="bot-chat">{chat.text}</div>
+                      ) : (
+                        <img className="image-chat" src={chat.image} />
+                      )}
+                    </div>
+                  );
+                }
+              })}
+            </div>
+
+            <form
+              onSubmit={(e) => {
+                e.preventDefault();
+                handleSend();
+              }}
+              className="input-row"
+            >
+              
+              <input
+                autoComplete="off"
+                onChange={(e) => setMessage(e.target.value)}
+                value={message}
+                type="text"
+                id="inputField"
+                placeholder="Start Conversation...."
+              />
+              <button type="submit">
+                <IoMdSend color="white" size="18px" />
+              </button>
+            </form>
+          </motion.div>
+        )}
+      </AnimatePresence>
+      <div className="toggle-chatBot-btn">
+        <button onClick={toggleBot}>
+          {showBot ? (
+            <IoClose color="blue" size="100%" />
+          ) : (
+            <AiFillMessage color="blue" size="100%" />
+          )}
+        </button>
+      </div>
+    </div>
+  );
+};
+
+export default ChatBot;

@@ -1,0 +1,1 @@
+Create a folder inside this repository, initiate a react project and replace src and package file..
